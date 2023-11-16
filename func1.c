@@ -1,79 +1,133 @@
-#include "heade.h"
+#include "hede.h"
 /**
-  * push - pushes an element to the stack
-  * @head: void
-  * @data: used to check if malloc fails
-  */
-
-void push(stack_t **head, unsigned int data)
+ * add - add two nodes remove the top node and place sum in new
+ * @stack: dll stack
+ * @line_number: line num
+ *
+ * Return: void
+ */
+void add(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
+	int a, b;
 
-	if (gs.mode == 1)/* Stack */
-		data = dlist_ins_end(gs.intarg);
-	else /* Queue */
-		data = dlist_ins_beg(gs.intarg);
-	if (data == 42)
-		myexit(-5, NULL);
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't add, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	a = (*stack)->n;
+	b = (*stack)->next->n;
+	*stack = (*stack)->next;
+	free((*stack)->prev);
+	(*stack)->prev = NULL;
+	(*stack)->n = a + b;
 }
 /**
-  * pall -  prints all the values on the stack, starting from the top
-  * @head: void
-  * @data: void
-  */
-void pall(stack_t **head, unsigned int data)
+ * sub - sub two nodes remove the top node and place sum in new
+ * @stack: dll stack
+ * @line_number: line num
+ *
+ * Return: void
+ */
+void sub(stack_t **stack, unsigned int line_number)
 {
-	stack_t *list;
-	(void)head;
-	(void)data;
+	int a, b;
 
-	list = gs.tail;
-	if (gs.size == 0)
-		return;
-	for (; list; list = list->prev)
-		printf("%d\n", list->n);
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't sub, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	a = (*stack)->n;
+	b = (*stack)->next->n;
+	*stack = (*stack)->next;
+	free((*stack)->prev);
+	(*stack)->prev = NULL;
+	(*stack)->n = b - a;
 }
 /**
-* pint- prints value on the top of the stack
-* @head: void
-* @data: void
-*/
-void pint(stack_t **head, unsigned int data)
+ * divide - div two nodes remove the top node and place sum in new
+ * @stack: dll stack
+ * @line_number: line num
+ *
+ * Return: void
+ */
+void divide(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
-	(void)data;
+	int a, b;
 
-	if (gs.size == 0)
-		myexit(-6, "pint");
-
-	printf("%d\n", gs.tail->n);
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't div, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	a = (*stack)->n;
+	if (a == 0)
+	{
+		fprintf(stderr, "L%d: division by zero\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	b = (*stack)->next->n;
+	*stack = (*stack)->next;
+	free((*stack)->prev);
+	(*stack)->prev = NULL;
+	(*stack)->n = b / a;
 }
 /**
-  * pop - removes the top element of the stack
-  * @head: void
-  * @data: void
-  */
-void pop(stack_t **head, unsigned int data)
+ * mul - mul two nodes remove the top node and place sum in new
+ * @stack: dll stack
+ * @line_number: line num
+ *
+ * Return: void
+ */
+void mul(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
-	(void)data;
+	int a, b;
 
-	if (gs.size == 0)
-		myexit(-7, NULL);
-	dlist_remove(gs.tail);
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't mul, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	a = (*stack)->n;
+	b = (*stack)->next->n;
+	*stack = (*stack)->next;
+	free((*stack)->prev);
+	(*stack)->prev = NULL;
+	(*stack)->n = b * a;
 }
 /**
-* swap - swaps the top two elements of the stack
-* @head: void
-* @data: store integer from node
-*/
-void swap(stack_t **head, unsigned int data)
+ * mod - mod two nodes remove the top node and place sum in new
+ * @stack: dll stack
+ * @line_number: line num
+ *
+ * Return: void
+ */
+void mod(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
-	if (gs.size <= 2)
-		myexit(-8, "swap");
+	int a, b;
 
-	data = gs.tail->n;
-	gs.tail->n = gs.tail->prev->n;
-	gs.tail->prev->n = data;
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't mod, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	a = (*stack)->n;
+	if (a == 0)
+	{
+		fprintf(stderr, "L%d: division by zero\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	b = (*stack)->next->n;
+	*stack = (*stack)->next;
+	free((*stack)->prev);
+	(*stack)->prev = NULL;
+	(*stack)->n = b % a;
 }

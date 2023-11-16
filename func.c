@@ -1,81 +1,88 @@
-#include "heade.h"
+#include "hede.h"
 /**
- * rotl - rotates the stack to the top
- * @head: beginning of stack
- * @data: integer in stack
+ * pchar - print the char at the top of the stack
+ * @stack: stack
+ * @line_number: line number in monty file
+ * Return: void
  */
-void rotl(stack_t **head, unsigned int data)
+void pchar(stack_t **stack, unsigned int line_number)
 {
-	(void) head;
-	if (gs.size == 0)
-		myexit(0, NULL);
-
-	data = gs.tail->n;
-	dlist_ins_beg(data);
-	dlist_remove(gs.tail);
-}
-/**
- * rotr - rotates the stack to the bottom
- * @head: beginning of stack
- * @data: integer in stack
-*/
-void rotr(stack_t **head, unsigned int data)
-{
-	(void) head;
-	if (gs.size == 0)
-		myexit(0, NULL);
-
-	data = gs.head->n;
-	dlist_ins_end(data);
-	dlist_remove(gs.head);
-}
-/**
- * pchar - rotates the stack to the bottom
- * @head: beginning of stack
- * @data: integer in stack
-*/
-void pchar(stack_t **head, unsigned int data)
-{
-	int num;
-	(void) head;
-	(void) data;
-
-	if (gs.size == 0)
-		myexit(-6, "pchar");
-	num = gs.tail->n;
-	if (num < 0 || num > 127)
-		myexit(-10, NULL);
-	printf("%c\n", num);
-}
-/**
- * pstr - rotates the stack to the bottom
- * @head: beginning of stack
- * @data: integer in stack
- */
-void pstr(stack_t **head, unsigned int data)
-{
-	stack_t *list;
-	(void) head;
-	(void) data;
-
-	list = gs.tail;
-	for (; list; list = list->prev)
+	if (*stack == NULL)
 	{
-		if (list->n == 0)
+		fprintf(stderr, "L%d: can't pchar, stack empty\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	if ((*stack)->n < 0 || (*stack)->n > 127)
+	{
+		fprintf(stderr, "L%d: can't pchar, value out of range\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	printf("%c\n", (*stack)->n);
+}
+/**
+ * pstr - print the string starting at the top of the stack
+ * @stack: stack
+ * @line_number: line number in monty file
+ * Return: void
+ */
+void pstr(stack_t **stack, unsigned int line_number __attribute__((unused)))
+{
+	stack_t *tmp;
+
+	tmp = *stack;
+	while (tmp != NULL)
+	{
+		if (tmp->n <= 0 || tmp->n > 127)
 			break;
-		printf("%c", list->n);
+		printf("%c", tmp->n);
+		tmp = tmp->next;
 	}
 	printf("\n");
 }
 /**
- * chgmode - change mode: stack to que
- * @head: Unused
- * @data: Unused
+ * rotl - rotate the stack to the top
+ * @stack: stack
+ * @line_number: line number in monty file
+ * Return: void
  */
-void chgmode(stack_t **head, unsigned int data)
+void rotl(stack_t **stack, unsigned int line_number __attribute__((unused)))
 {
-	(void) head;
-	(void) data;
+	int tmp;
+	stack_t *ptr = *stack;
 
-	gs.mode *= -1;
+	if (*stack == NULL)
+		return;
+	tmp = (*stack)->n;
+	while (ptr->next != NULL)
+	{
+		ptr->n = ptr->next->n;
+		ptr = ptr->next;
+	}
+	ptr->n = tmp;
+}
+/**
+ * rotr - rotate the stack to the top
+ * @stack: stack
+ * @line_number: line number in monty file
+ * Return: void
+ */
+void rotr(stack_t **stack, unsigned int line_number __attribute__((unused)))
+{
+	int tmp;
+	stack_t *ptr = *stack;
+
+	if (*stack == NULL)
+		return;
+
+	while (ptr->next != NULL)
+		ptr = ptr->next;
+	tmp = ptr->n;
+	while (ptr->prev != NULL)
+	{
+		ptr->n = ptr->prev->n;
+		ptr = ptr->prev;
+	}
+	ptr->n = tmp;
 }

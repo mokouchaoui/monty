@@ -1,90 +1,60 @@
-#include "heade.h"
+#include "hede.h"
 /**
-  * _add - adds the top two elements of the stack
-  * @head: void
-  * @data: void
-  */
-void _add(stack_t **head, unsigned int data)
+ * pop - removes top item from stack
+ * @stack: stack
+ * @line_number: monty file line number
+ * Return: void
+ */
+void pop(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
+	stack_t *tmp = *stack;
 
-	if (gs.size < 2)
-		myexit(-8, "add");
-
-	data = gs.tail->n;
-	dlist_remove(gs.tail);
-	data += gs.tail->n;
-	gs.tail->n = data;
+	if (tmp == NULL)
+	{
+		fprintf(stderr, "L%d: can't pop an empty stack\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	if (tmp->next == NULL)
+	{
+		free(*stack);
+		*stack = NULL;
+	}
+	else
+	{
+		(*stack) = (*stack)->next;
+		(*stack)->prev = NULL;
+		free(tmp);
+	}
 }
 /**
-  * _sub - subtract the top two elements of the stack
-  * @head: void
-  * @data: store interger from node
-  */
-void _sub(stack_t **head, unsigned int data)
+ * nop - do nothing
+ * @stack: unused
+ * @line_number: unused
+ * Return: void
+ */
+void nop(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
-
-	if (gs.size < 2)
-		myexit(-8, "sub");
-
-	data = gs.tail->prev->n;
-	data -= gs.tail->n;
-	gs.tail->prev->n = data;
-	dlist_remove(gs.tail);
+	(void) stack;
+	(void) line_number;
 }
 /**
-  * _div - divides the top two elements of the stack
-  * @head: void
-  * @data: store integer from node
-  */
-void _div(stack_t **head, unsigned int data)
+ * swap - swaps data from top two nodes in stack
+ * @stack: stack
+ * @line_number: monty file line number
+ * Return: void
+ */
+void swap(stack_t **stack, unsigned int line_number)
 {
-	(void)head;
+	int temp;
 
-	if (gs.size < 2)
-		myexit(-8, "div");
-
-	data = gs.tail->n;
-	if (data == 0)
-		myexit(-9, NULL);
-	dlist_remove(gs.tail);
-	data /= gs.tail->n;
-	gs.tail->n = data;
-}
-/**
-  * _mod - modulo the top two elements of the stack
-  * @head: void
-  * @data: store integer from node
-  */
-void _mod(stack_t **head, unsigned int data)
-{
-	(void)head;
-
-	if (gs.size < 2)
-		myexit(-8, "mod");
-
-	data = gs.tail->n;
-	if (data == 0)
-		myexit(-9, NULL);
-	dlist_remove(gs.tail);
-	data %= gs.tail->n;
-	gs.tail->n = data;
-}
-/**
-  * _mul - multiply the top two elements of the stack
-  * @head: void
-  * @data: store interger from node
-  */
-void _mul(stack_t **head, unsigned int data)
-{
-	(void)head;
-
-	if (gs.size < 2)
-		myexit(-8, "mul");
-
-	data = gs.tail->n;
-	dlist_remove(gs.tail);
-	data *= gs.tail->n;
-	gs.tail->n = data;
+	if (*stack == NULL || (*stack)->next == NULL)
+	{
+		fprintf(stderr, "L%d: can't swap, stack too short\n", line_number);
+		exit_free(*stack);
+		exit(EXIT_FAILURE);
+	}
+	temp = (*stack)->n;
+	(*stack)->n = (*stack)->next->n;
+	(*stack)->next->n = temp;
 }
