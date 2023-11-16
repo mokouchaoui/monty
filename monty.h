@@ -1,5 +1,5 @@
-#ifndef HEDE_H
-#define HEDE_H
+#ifndef MONTY_H
+#define MONTY_H
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
