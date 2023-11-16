@@ -1,37 +1,139 @@
 #include "hede.h"
 
 /**
- * opcomp - check command in dictionary
- * @opcode: the string name that is extracted by sscanf from getline
- * @stack: dptr to stack
- * @line_number: line number of monty file
- * Return: function pointer or null if no match
+ * _pushop - pushes element onto the stack
+ * @stack: double pointer to the stack
+ * @linenumber: line number
+ * Return: Nothing
  */
-void opcomp(stack_t **stack, unsigned int line_number, char *opcode)
+void _pushop(stack_t **stack, unsigned int linenumber)
 {
-	int index = 0;
+	int reqargint;
+	int i = 0;
+	char *reqargstring = oparg.requiredarg;
+	stack_t *coolblock;
 
-	instruction_t opc[] = {
-		{"push", push}, {"pall", pall},
-		{"pint", pint}, {"pop", pop},
-		{"swap", swap}, {"add", add},
-		{"nop", nop}, {"sub", sub},
-		{"div", divide}, {"mul", mul},
-		{"mod", mod}, {"pchar", pchar},
-		{"pstr", pstr}, {"rotl", rotl},
-		{"rotr", rotr}, {NULL, NULL}
-	};
-
-	while (opc[index].opcode != NULL)
+	if (!reqargstring)
 	{
-		if (strcmp(opcode, opc[index].opcode) == 0)
-		{
-			opc[index].f(stack, line_number);
-			return;
-		}
-		index++;
+		fprintf(stderr, "L%u: usage: push integer\n", linenumber);
+		exit(EXIT_FAILURE);
 	}
-	fprintf(stderr, "L%u: unknown instruction %s\n", line_number, opcode);
-	exit_free(*stack);
-	exit(EXIT_FAILURE);
+	for (; reqargstring[i] != '\0'; i++)
+	{
+		if (reqargstring[0] == '-')
+			continue;
+		if (!isdigit(reqargstring[i]))
+		{
+			fprintf(stderr, "L%u: usage: push integer\n", linenumber);
+			exit(EXIT_FAILURE);
+		}
+	}
+	reqargint = atoi(reqargstring);
+	coolblock = malloc(sizeof(stack_t));
+	if (!coolblock)
+	{
+		fprintf(stderr, "Error: malloc failed\n");
+		exit(EXIT_FAILURE);
+	}
+	coolblock->prev = NULL;
+	coolblock->n = reqargint;
+
+	if (*stack == NULL)
+	{
+		coolblock->next = NULL;
+	}
+	else
+	{
+		coolblock->next = *stack;
+		(*stack)->prev = coolblock;
+	}
+	*stack = coolblock;
+}
+
+/**
+ * _pallop - prints all values on the stack, starting from the top
+ * @stack: top of the stack
+ * @linenumber: line number
+ * Return: nothing
+ */
+void _pallop(stack_t **stack, __attribute__((unused))unsigned int linenumber)
+{
+	stack_t *surfer = *stack;
+
+	while (surfer)
+	{
+		printf("%i\n", surfer->n);
+		surfer = surfer->next;
+	}
+}
+
+/**
+ * _pintop - prints the value at the top of the stack, followed by a new line
+ * @stack: top of the stack
+ * @linenumber: line number
+ * Return: nothing
+ */
+void _pintop(stack_t **stack, __attribute__((unused))unsigned int linenumber)
+{
+	if (stack == NULL)
+	{
+		fprintf(stderr, "L%u: can't pint, stack empty\n", linenumber);
+		exit(EXIT_FAILURE);
+	}
+	if (*stack == NULL)
+	{
+		fprintf(stderr, "L%u: can't pint, stack empty\n", linenumber);
+		exit(EXIT_FAILURE);
+	}
+	printf("%i\n", (*stack)->n);
+}
+
+/**
+ * _popop - removes the top element from the stack
+ * @stack: top of the stack
+ * @linenumber: line number
+ * Return: nothing
+ */
+void _popop(stack_t **stack, __attribute__((unused))unsigned int linenumber)
+{
+	stack_t *drpopper;
+
+	if (stack == NULL)
+	{
+		fprintf(stderr, "L%u: can't pop an empty stack\n", linenumber);
+		exit(EXIT_FAILURE);
+	}
+	if (*stack == NULL)
+	{
+		fprintf(stderr, "L%u: can't pop an empty stack\n", linenumber);
+		exit(EXIT_FAILURE);
+	}
+	drpopper = (*stack)->next;
+	if ((*stack)->next != NULL)
+	{
+		(*stack)->next->prev = NULL;
+	}
+	free(*stack);
+	*stack = drpopper;
+}
+
+/**
+ * _swapop - cleverly swaps the top two elements of the stack
+ * by swapping their values
+ * @stack: top of the stack
+ * @linenumber: line number
+ * Return: nothing
+ */
+void _swapop(stack_t **stack, unsigned int linenumber)
+{
+	int swappy; /* will hold value of n to switch */
+
+	if ((stack == NULL) || (*stack == NULL) || (((*stack)->next) == NULL))
+	{
+		fprintf(stderr, "L%u: can't swap, stack too short\n", linenumber);
+		exit(EXIT_FAILURE);
+	}
+	swappy = (*stack)->n;
+	(*stack)->n = (*stack)->next->n;
+	(*stack)->next->n = swappy;
 }

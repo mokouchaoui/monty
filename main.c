@@ -1,96 +1,94 @@
 #include "hede.h"
+
 /**
- * main - main function for monty interpreter
- * @argc: arg count
- * @argv: arg vector list
- * Return: 0 on success or EXIT_FAILURE
+ * main - entry point for the function that executes monty byte code files
+ *
+ * @argc: number of arguments in argv array (vector)
+ * @argv: array of strings, contains all arguments passed
+ *
+ * Return: 0 if successful, -1 (EXIT_FAILURE) otherwise
  */
 int main(int argc, char *argv[])
 {
-	char opcode[6] = {0}, wrong[1024] = {0};
-	ssize_t read;
-	size_t len;
-	stack_t *stack = NULL;
-	int matches = 0;
-	unsigned int line_number = 0;
+	FILE *filepointer; /* the file to open */
+	unsigned int linenumber = 1; /* to keep track for error msgs */
+	char *buffer = NULL; /* for getline */
+	size_t size = 0; /* so getline allocates the buffer itself */
+	stack_t *stack = NULL; /* stack pointer */
+	char *opcode = NULL; /* will put the opcode here from strtok */
 
-	if (argc != 2)	/* if too many or too few arguments to monty exit fail */
+	if (argc != 2)
 	{
 		fprintf(stderr, "USAGE: monty file\n");
 		exit(EXIT_FAILURE);
 	}
-	globes.fm = NULL;
-	globes.fm = fopen(argv[1], "r"); /* not freed must close file */
-	if (globes.fm == NULL)	/* if file cant open then exit fail */
+	filepointer = fopen(argv[1], "r"); /* open file into a stream */
+	if (filepointer == NULL)
 	{
 		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
-		fclose(globes.fm);
 		exit(EXIT_FAILURE);
 	}
-	globes.lineptr = NULL;
-	while ((read = getline(&globes.lineptr, &len, globes.fm)) != -1)
+	while ((getline(&buffer, &size, filepointer)) != -1)
 	{
-		line_number++;
-		if (!_iswhitespace())
+		if (*buffer == '\n')
 		{
-			matches = sscanf(globes.lineptr, "%s%d%1s", opcode, &globes.data, wrong);
-			if (matches != 2 && strcmp(opcode, "push") == 0)
-			{
-				fprintf(stderr, "L%d: usage: push integer\n", line_number);
-				exit_free(stack);
-				exit(EXIT_FAILURE);
-			}
-			if (opcode != NULL && opcode[0] != '#')
-				opcomp(&stack, line_number, opcode);
+			linenumber++;
+			continue;
 		}
-		free(globes.lineptr);
-		globes.lineptr = NULL;
+		opcode = strtok(buffer, " \n\t"); /* get the opcode */
+		if (!opcode)
+		{
+			linenumber++;
+			continue;
+		}
+		oparg.requiredarg = strtok(NULL, " \n\t");
+		executeopcode(opcode, &stack, linenumber);
+		linenumber++;
 	}
-	exit_free(stack);
+	if (stack)
+		freestack(&stack);
+	free(buffer);
+	fclose(filepointer);
 	return (0);
 }
-
 /**
- * free_stack - free a stack with single ptr reference
- * @stack: pointer to a ll
- * Return: void
+ * executeopcode - pick an opcode and do it
+ * @opcode: string, opcode provided in the file
+ * @stack: address of stack to execute opcode operation on
+ * @linenumber: int, keeping track of line number for error purposes
+ * Return: nothing, nada, zip, zilch
  */
-void free_stack(stack_t *stack)
+void executeopcode(char *opcode, stack_t **stack, unsigned int linenumber)
 {
-	stack_t *temp;
+	int index;
+	instruction_t opcodestocheck[] = {
+		{"push", _pushop},
+		{"pall", _pallop},
+		{"pint", _pintop},
+		{"pop", _popop},
+		{"swap", _swapop},
+		{"add", _addop},
+		{"nop", _nopop},
+		{NULL, NULL}
+	};
+	void (*operation)(stack_t **stack, unsigned int line_number);
 
-	while (stack != NULL)
+	for (index = 0; opcodestocheck[index].opcode != NULL; index++)
 	{
-		temp = stack->next;
-		free(stack);
-		stack = temp;
+		if (strcmp(opcode, opcodestocheck[index].opcode) == 0)
+			operation = opcodestocheck[index].f;
+		/* else if (opcodestocheck[index].f == NULL) */
+		else if (index == 7)
+		{
+			fprintf(stderr, "L%u: unknown instruction %s\n", linenumber, opcode);
+			exit(EXIT_FAILURE);
+		}
 	}
-}
-/**
- * exit_free - frees all possible allocs before exiting the program
- * @stack: ptr to a stack
- * Return: void
- */
-void exit_free(stack_t *stack)
-{
-	fclose(globes.fm);
-	if (globes.lineptr != NULL)
-		free(globes.lineptr);
-	free_stack(stack);
-}
-/**
- * _iswhitespace - check for whitespace
- *
- * Return: 1 if only whitespace 0 if not only whitespace
- */
-int _iswhitespace(void)
-{
-	int i, j;
-	char *ws = "\r\n\t ";
-
-	for (i = 0; globes.lineptr[i] != '\0'; i++)
-		for (j = 0; ws[j] != '\0' && ws[j] != globes.lineptr[i]; j++)
-			if (ws[j] == '\n')
-				return (0);
-	return (1);
+	/* if (!operation) */
+	/* if (opcodestocheck[index].f == NULL) */
+	/* { */
+		/* fprintf(stderr, "L%u: unknown instruction %s\n", linenumber, opcode); */
+		/* exit(EXIT_FAILURE); */
+	/* } */
+	operation(stack, linenumber);
 }
